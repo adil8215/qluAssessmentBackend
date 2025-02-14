@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "outDir": "./dist",         // The compiled files will go into the dist folder
+    "esModuleInterop": true,    // Ensures proper compatibility with ES Modules
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "baseUrl": "./",            // Set base URL to the root of the project
+    "paths": {
+      "*": ["node_modules/*", "src/*"]  // Allows imports from `src/` folder
+    }
+  },
+  "include": ["src/**/*.ts", "src/index.ts"],    // Include all TypeScript files inside src/
+  "exclude": ["node_modules"]    // Exclude node_modules folder
+}

@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",         // Use CommonJS modules (suitable for Node.js)
+      "target": "es2019",           // Set a modern JavaScript target
+      "outDir": "./dist/migrations",// Output directory for compiled migration files
+      "rootDir": "./src/migrations",// Root directory of your migration TypeScript files
+      "strict": true                // Enable strict type-checking options
+    },
+    "include": ["src/migrations/**/*.ts","src/migrations/*.ts"] // Include all TypeScript files in your migrations folder
+  }
+  
