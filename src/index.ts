@@ -2,54 +2,30 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
-import { Server as SocketIOServer } from "socket.io";
-// Load environment variables
+import { initializeSocket } from "./utils/socket"; // Import socket setup
+
 dotenv.config();
 import userRouter from "./routes/userRoutes";
 import otpRouter from "./routes/otpRoutes";
-const app = express();
+import messageRouter from "./routes/messageRoutes";
+import conversationRouter from "./routes/conversationRoute";
 
+const app = express();
 const port = process.env.PORT || 3006;
+const HOST = "0.0.0.0"; // Binds to all interfaces
+
 app.use(express.json());
 app.use(cors());
 app.use("/api/user", userRouter);
 app.use("/api/otp", otpRouter);
+app.use("/api/messages", messageRouter);
+app.use("/api/conversations", conversationRouter);
 
 const server = http.createServer(app);
 
-// Initialize Socket.IO with the HTTP server
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: "*", // Adjust for your production origin(s)
-    methods: ["GET", "POST"],
-  },
-});
+// Initialize Socket.IO
+initializeSocket(server);
 
-io.on("connection", (socket) => {
-  console.log("New client connected:", socket.id);
-
-  // Example: join a room (e.g., conversation or group room)
-  socket.on("joinRoom", (room: string) => {
-    socket.join(room);
-    console.log(`Socket ${socket.id} joined room ${room}`);
-  });
-
-  // Example: listen for chat messages
-  socket.on(
-    "sendMessage",
-    (data: { room: string; senderId: number; message: string }) => {
-      console.log("Message received:", data);
-      // Broadcast the message to all clients in the room (except the sender)
-      socket.to(data.room).emit("message", data);
-    }
-  );
-
-  // Handle disconnection
-  socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
-  });
-});
-
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+server.listen({ port: port, host: HOST }, () => {
+  console.log(`Server running on http://${HOST}:${port}`);
 });
