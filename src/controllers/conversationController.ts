@@ -3,9 +3,11 @@ import * as conversationService from "../services/conversationService";
 
 export const createConversation = async (req: Request, res: Response) => {
   try {
-    const { participants } = req.body;
+    const { participants, group_id, conversation_type } = req.body;
     const conversation = await conversationService.createConversation(
-      participants
+      participants,
+      group_id,
+      conversation_type
     );
     res.status(201).json(conversation);
   } catch (error) {
@@ -46,5 +48,27 @@ export const findConversation = async (
   } catch (error) {
     console.error("Error finding conversation:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getConversationByGroupId = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const { groupId } = req.params; // Extract groupId from the route parameter
+
+  try {
+    const conversation = await conversationService.findConversationByGroupId(
+      Number(groupId)
+    );
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+
+    return res.status(200).json(conversation);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };

@@ -6,17 +6,19 @@ import {
 } from "../validators/messageValidation";
 import { messageValidationMiddleware } from "../middlewares/generalValidationMiddleware";
 import { authMiddleware } from "../middlewares/authMiddlewares";
+import upload from "../middlewares/uploadFile";
 
 const messageRouter = express.Router();
 
 messageRouter.post(
   "/sendMessage",
-  [messageValidationMiddleware, authMiddleware],
+  [authMiddleware, upload.array("attachments"), messageValidationMiddleware],
   messageController.sendMessage
 );
 
 messageRouter.get(
   "/getMessagesByConversationId/:id",
+  authMiddleware,
   messageController.getConversationMessages
 );
 // router.put("/", validateRequest(updateMessageSchema), messageController.markMessageAsRead);

@@ -19,15 +19,17 @@ export const initializeSocket = (server: HttpServer) => {
       console.log(`Socket ${socket.id} joined room ${room}`);
     });
 
-    socket.on(
-      "sendMessage",
-      (data: { room: string; senderId: number; message: string }) => {
-        console.log("Message received:", data);
+    // In socket initialization
+    socket.on("sendMessage", (data: any) => {
+      console.log("Message received:", data);
 
-        // Emit to everyone in the room, including sender
-        io.to(data.room).emit("message", data);
-      }
-    );
+      // Add proper transformation
+      io.to(data.room).emit("message", {
+        ...data,
+        message_id: Date.now().toString(), // Temporary ID until DB insert
+        created_at: new Date().toISOString(),
+      });
+    });
 
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);

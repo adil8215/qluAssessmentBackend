@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import * as userService from "../services/userService";
 import { loginSchema } from "../validators/userAccountValidator";
+import { AuthRequest } from "middlewares/authMiddlewares";
 
 // Controller to create a user
 export const createUser = async (req: Request, res: Response) => {
@@ -91,10 +92,38 @@ export const loginController = async (
       password
     );
 
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 300 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     res.json({ accessToken, refreshToken, user });
   } catch (error) {
+    console.log("error", error);
     res.status(400).json({
       message: error instanceof Error ? error.message : "Login failed",
     });
   }
+};
+
+export const logout = (req: Request, res: Response) => {
+  res.clearCookie("access_token");
+  res.clearCookie("refresh_token");
+  res.json({ message: "Logged out successfully" });
+};
+
+export const getLoggedInUser = (req: AuthRequest, res: Response): any => {
+  if (!req.user) {
+    return res.status(403).json({ message: "User not found." });
+  }
+  res.json({ userId: req.user.id });
 };

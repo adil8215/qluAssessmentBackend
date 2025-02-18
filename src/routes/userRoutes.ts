@@ -3,10 +3,12 @@ import { validateUser } from "../middlewares/validateUserSchema"; // Import the 
 import {
   createUser,
   getAllUsers,
+  getLoggedInUser,
   getUserById,
   loginController,
   updateUser,
 } from "../controllers/userController"; // Import the user controller
+import { authMiddleware } from "../middlewares/authMiddlewares";
 
 const userRouter = express.Router();
 
@@ -16,4 +18,6 @@ userRouter.get("/getAllUsers", getAllUsers);
 userRouter.get("/getUserById/:id", getUserById);
 userRouter.patch("/updateUser/:id", validateUser, updateUser);
 userRouter.post("/login", loginController);
+userRouter.get("/getLoggedInUser", authMiddleware, getLoggedInUser);
+
 export default userRouter;

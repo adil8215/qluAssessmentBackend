@@ -9,24 +9,18 @@ export interface AuthRequest extends Request {
   user?: { id: number };
 }
 
-// Middleware to verify JWT token
+// Middleware to verify JWT token from HTTP-only cookies
 export const authMiddleware = (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ): void => {
-  const authHeader = req.header("Authorization");
-
-  if (!authHeader) {
-    res.status(401).json({ message: "Access denied. No token provided." });
-    return;
-  }
-
-  const token = authHeader.split(" ")[1]; // Extract token from "Bearer <token>"
+  console.log("req cookies", req.cookies);
+  const token = req.cookies?.access_token; // Extract token from cookies
 
   if (!token) {
-    res.status(401).json({ message: "Invalid authorization format." });
-    return;
+    res.status(401).json({ message: "Access denied. No token provided." });
+    return; // Ensure no further code is executed
   }
 
   try {
@@ -44,5 +38,6 @@ export const authMiddleware = (
     next(); // Proceed to the next middleware/controller
   } catch (error) {
     res.status(403).json({ message: "Invalid or expired token." });
+    return; // Ensure no further code is executed
   }
 };

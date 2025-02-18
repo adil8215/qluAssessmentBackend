@@ -2,13 +2,17 @@
 
 import client from "../db";
 
-export const createConversation = async (participants: number[]) => {
+export const createConversation = async (
+  participants: number[],
+  groupId: number | null, // Optional, could be null for direct conversations
+  conversationType: string // e.g., 'direct' or 'group'
+) => {
   const query = `
-      INSERT INTO conversation (participants) 
-      VALUES ($1) 
-      RETURNING *;
-    `;
-  const values = [participants];
+    INSERT INTO conversation (participants, group_id, conversation_type) 
+    VALUES ($1, $2, $3) 
+    RETURNING *;
+  `;
+  const values = [participants, groupId, conversationType];
   const { rows } = await client.query(query, values);
   return rows[0];
 };
@@ -18,13 +22,24 @@ export const findConversation = async (
   receiverId: number
 ) => {
   const query = `
+    SELECT * FROM conversation
+    WHERE participants @> ARRAY[$1, $2]::integer[]
+    AND cardinality(participants) = 2
+    LIMIT 1;
+  `;
+
+  const { rows } = await client.query(query, [senderId, receiverId]);
+  return rows[0] || null;
+};
+
+export const findConversationByGroupId = async (groupId: number) => {
+  const query = `
       SELECT * FROM conversation
-      WHERE participants @> ARRAY[LEAST($1, $2), GREATEST($1, $2)]::integer[]
-      AND cardinality(participants) = 2
+      WHERE group_id = $1
       LIMIT 1;
     `;
 
-  const { rows } = await client.query(query, [senderId, receiverId]);
+  const { rows } = await client.query(query, [groupId]);
   return rows[0] || null;
 };
 
