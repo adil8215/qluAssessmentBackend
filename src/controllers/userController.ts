@@ -2,7 +2,13 @@
 import { Request, Response } from "express";
 import * as userService from "../services/userService";
 import { loginSchema } from "../validators/userAccountValidator";
-import { AuthRequest } from "middlewares/authMiddlewares";
+import { AuthRequest } from "../middlewares/authMiddlewares";
+import {
+  deleteOtpByUserId,
+  generateOtp,
+  requestOtp,
+} from "../services/otpService";
+import { sendOtpEmail } from "../services/emailService";
 
 // Controller to create a user
 export const createUser = async (req: Request, res: Response) => {
@@ -126,4 +132,65 @@ export const getLoggedInUser = (req: AuthRequest, res: Response): any => {
     return res.status(403).json({ message: "User not found." });
   }
   res.json({ userId: req.user.id });
+};
+
+export const updateUserContactInfo = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const { id } = req.params; // Get user ID from request params
+  console.log("req.body", req.body);
+  try {
+    const updatedUser = await userService.updateUserContactInfo(
+      Number(id),
+      req.body
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const updateUserProfile = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const { id } = req.params; // User ID from params
+  const file = req.file; // Uploaded file
+
+  try {
+    const updatedUser = await userService.updateUserProfile(
+      Number(id),
+      req.body,
+      file
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const sendOtp = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { id } = req.params;
+    await deleteOtpByUserId(Number(id));
+    const user = await userService.getUserById(Number(id));
+    const otpRecord = await requestOtp(Number(id));
+    await sendOtpEmail(user?.email, otpRecord.otp);
+    res.status(200).json("Otp send sucessfully");
+  } catch (error) {
+    console.log("error sending otp", error);
+  }
 };

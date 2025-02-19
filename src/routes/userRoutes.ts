@@ -6,9 +6,14 @@ import {
   getLoggedInUser,
   getUserById,
   loginController,
+  logout,
+  sendOtp,
   updateUser,
+  updateUserContactInfo,
+  updateUserProfile,
 } from "../controllers/userController"; // Import the user controller
 import { authMiddleware } from "../middlewares/authMiddlewares";
+import upload from "../middlewares/uploadFile";
 
 const userRouter = express.Router();
 
@@ -19,5 +24,16 @@ userRouter.get("/getUserById/:id", getUserById);
 userRouter.patch("/updateUser/:id", validateUser, updateUser);
 userRouter.post("/login", loginController);
 userRouter.get("/getLoggedInUser", authMiddleware, getLoggedInUser);
+userRouter.get("/sendOtp/:id", sendOtp);
 
+userRouter.patch("/updateContact/:id", updateUserContactInfo);
+
+// Route to update name, username, status, and profile photo
+userRouter.patch(
+  "/updateProfile/:id",
+  upload.single("file"),
+  updateUserProfile
+);
+
+userRouter.get("/logout", logout);
 export default userRouter;

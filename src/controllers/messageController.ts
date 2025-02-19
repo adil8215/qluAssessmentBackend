@@ -21,25 +21,27 @@ export const sendMessage = async (
       group_id,
     } = req.body;
     const groupId = group_id == "" ? null : Number(group_id);
+    const receiver_id = receiverId == "" ? null : Number(receiverId);
     console.log("payload", req.body);
 
     // 1. Check if a conversation exists
     let conversation;
-    if (!groupId && receiverId) {
+    if (!groupId && receiver_id) {
       conversation = await conversationService.findConversation(
         senderId,
-        receiverId
+        receiver_id
       );
 
       // 2. If not, create a new conversation
       if (!conversation) {
         conversation = await conversationService.createConversation(
-          [senderId, receiverId],
+          [senderId, receiver_id],
           groupId,
           conversation_type
         );
       }
-    } else if (groupId && !receiverId) {
+    } else if (groupId && !receiver_id) {
+      console.log("group chat", groupId);
       conversation = await conversationService.findConversationByGroupId(
         groupId
       );
@@ -55,25 +57,28 @@ export const sendMessage = async (
           groupId,
           conversation_type
         );
+        console.log("conversation", conversation);
       }
     }
 
     // 3. Send the message in the conversation
     const message = await messageService.createMessage(
-      conversation.conversation_id,
+      conversation?.conversation_id,
       senderId,
-      receiverId,
+      receiver_id as any,
       messageText,
       messageType
     );
 
+    let attachments = [];
     if (req.files && Array.isArray(req.files)) {
       for (const file of req.files) {
-        await createAttachment(
+        const attachment = await createAttachment(
           message.message_id, // Associate the attachment with the current message
           file.mimetype, // File type (e.g., 'image/png')
           file.path // The file path or URL where it's stored
         );
+        attachments.push(attachment);
       }
     }
 
@@ -91,11 +96,12 @@ export const sendMessage = async (
       message_text: messageText, // ✅ snake_case
       conversation_id: conversation.conversation_id,
       created_at: new Date().toISOString(),
+      attachments,
     });
 
     return res.status(201).json({ message, conversation });
   } catch (error) {
-    console.error("Error sending message:", error);
+    console.error("Error sending message1111:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

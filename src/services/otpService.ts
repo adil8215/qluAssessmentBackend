@@ -56,6 +56,21 @@ async function deleteOtp(userId: number, otp: string): Promise<void> {
   }
 }
 
+async function deleteOtpByUserId(userId: number): Promise<void> {
+  const query = {
+    text: "DELETE FROM otp WHERE userId = $1",
+    values: [userId],
+  };
+
+  try {
+    await client.query(query);
+    console.log("OTP deleted successfully");
+  } catch (err) {
+    console.error("Error deleting OTP:", err);
+    throw new Error("Error deleting OTP");
+  }
+}
+
 // Function to validate the OTP (checking if it is correct and within a certain expiration time)
 async function validateOtp(
   userId: number,
@@ -95,4 +110,10 @@ async function validateOtp(
   }
 }
 
-export { requestOtp, validateOtp, handleOtpRequest };
+export {
+  requestOtp,
+  validateOtp,
+  handleOtpRequest,
+  deleteOtpByUserId,
+  generateOtp,
+};

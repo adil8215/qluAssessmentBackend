@@ -146,3 +146,41 @@ export const login = async (email: string, password: string) => {
 
   return { accessToken, refreshToken, user };
 };
+
+export const updateUserContactInfo = async (id: number, userData: any) => {
+  const { email, contact_number } = userData;
+
+  const query = `
+    UPDATE users
+    SET email = $1, contact_number = $2
+    WHERE id = $3 RETURNING *
+  `;
+
+  const result = await client.query(query, [email, contact_number, id]);
+
+  return result.rows[0];
+};
+
+export const updateUserProfile = async (
+  id: number,
+  userData: any,
+  file?: Express.Multer.File
+) => {
+  const { name, username } = userData;
+  let img_url: string | null = null;
+
+  if (file) {
+    const filePath = `uploads/${file.filename}`;
+    img_url = filePath; // Store relative path
+  }
+
+  const query = `
+    UPDATE users
+    SET name = $1, username = $2, img_url = COALESCE($3, img_url)
+    WHERE id = $4 RETURNING *;
+  `;
+
+  const result = await client.query(query, [name, username, img_url, id]);
+
+  return result.rows[0];
+};
