@@ -17,7 +17,7 @@ export const createConversation = async (req: Request, res: Response) => {
 
 export const getUserConversations = async (req: Request, res: Response) => {
   try {
-    const userId = Number(req.params.userId);
+    const userId = Number(req.params.id);
     const conversations = await conversationService.getUserConversations(
       userId
     );
@@ -33,8 +33,9 @@ export const findConversation = async (
 ): Promise<any> => {
   try {
     const senderId = req.user?.id;
-    const receiverId = Number(req.params.receiverId);
 
+    const receiverId = Number(req.params.receiverId);
+    console.log("participants", senderId, receiverId);
     const conversation = await conversationService.findConversation(
       senderId,
       receiverId

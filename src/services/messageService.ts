@@ -22,8 +22,43 @@ export const createMessage = async (
   return rows[0];
 };
 
+// export const getMessagesByConversation = async (conversationId: number) => {
+//   const query = `SELECT * FROM message WHERE conversation_id = $1 ORDER BY created_at ASC;`;
+//   const { rows } = await client.query(query, [conversationId]);
+//   return rows;
+// };
+
+// export const getMessagesByConversation = async (conversationId: number) => {
+//   const query = `
+//       SELECT *
+//       FROM message m
+//       JOIN users u ON m.sender_id = u.id
+//       WHERE m.conversation_id = $1
+//       ORDER BY m.created_at ASC;
+//     `;
+
+//   const { rows } = await client.query(query, [conversationId]);
+//   return rows;
+// };
+
 export const getMessagesByConversation = async (conversationId: number) => {
-  const query = `SELECT * FROM message WHERE conversation_id = $1 ORDER BY created_at ASC;`;
+  const query = `
+      SELECT 
+        m.message_id,
+        m.sender_id,
+        m.receiver_id,
+        m.message_text,
+        m.message_type,
+        m.read_at,
+        m.created_at,
+        u.name,
+        u.img_url
+      FROM message m
+      JOIN users u ON m.sender_id = u.id
+      WHERE m.conversation_id = $1
+      ORDER BY m.created_at ASC;
+    `;
+
   const { rows } = await client.query(query, [conversationId]);
   return rows;
 };

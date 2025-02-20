@@ -17,4 +17,9 @@ conversationRouter.get(
   conversationController.getConversationByGroupId
 );
 
+conversationRouter.get(
+  "/fetchUserConversations/:id",
+  authMiddleware,
+  conversationController.getUserConversations
+);
 export default conversationRouter;

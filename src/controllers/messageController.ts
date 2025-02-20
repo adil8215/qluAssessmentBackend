@@ -13,12 +13,15 @@ export const sendMessage = async (
 ): Promise<any> => {
   try {
     const senderId = req.user?.id;
+    console.log("senderId", senderId);
     const {
       receiverId,
       messageText,
       messageType,
       conversation_type,
       group_id,
+      name,
+      img_url,
     } = req.body;
     const groupId = group_id == "" ? null : Number(group_id);
     const receiver_id = receiverId == "" ? null : Number(receiverId);
@@ -97,6 +100,8 @@ export const sendMessage = async (
       conversation_id: conversation.conversation_id,
       created_at: new Date().toISOString(),
       attachments,
+      name,
+      img_url,
     });
 
     return res.status(201).json({ message, conversation });
