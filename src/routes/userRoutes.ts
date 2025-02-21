@@ -1,6 +1,7 @@
 import express from "express";
 import { validateUser } from "../middlewares/validateUserSchema"; // Import the validation middleware
 import {
+  checkUserStatus,
   createUser,
   getAllUsers,
   getLoggedInUser,
@@ -34,6 +35,8 @@ userRouter.patch(
   upload.single("file"),
   updateUserProfile
 );
+
+userRouter.use("/check-token", checkUserStatus);
 
 userRouter.get("/logout", logout);
 export default userRouter;
