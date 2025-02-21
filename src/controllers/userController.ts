@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import * as userService from "../services/userService";
 import { loginSchema } from "../validators/userAccountValidator";
 import { AuthRequest } from "../middlewares/authMiddlewares";
+import jwt from "jsonwebtoken";
 import {
   deleteOtpByUserId,
   generateOtp,
@@ -192,5 +193,43 @@ export const sendOtp = async (req: Request, res: Response): Promise<any> => {
     res.status(200).json("Otp send sucessfully");
   } catch (error) {
     console.log("error sending otp", error);
+  }
+};
+
+export const checkUserStatus = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const token = req.cookies?.access_token;
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ status: "expired", message: "No token provided." });
+  }
+
+  try {
+    const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+
+    if (!ACCESS_TOKEN_SECRET) {
+      throw new Error(
+        "ACCESS_TOKEN_SECRET is not defined in environment variables"
+      );
+    }
+
+    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as { exp: number };
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decoded.exp < currentTime) {
+      return res
+        .status(401)
+        .json({ status: "expired", message: "Token expired." });
+    }
+
+    res.status(200).json({ status: "active", message: "Token is active." });
+  } catch (error) {
+    return res
+      .status(403)
+      .json({ status: "expired", message: "Invalid token." });
   }
 };
