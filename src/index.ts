@@ -14,6 +14,8 @@ import attachmentRouter from "./routes/attachmentRoute";
 import path from "path";
 import groupRouter from "./routes/groupRoutes";
 import userGroupRouter from "./routes/userGroupRouter";
+import publicUserRouter from "./routes/userRoutes/publicUserRoutes";
+import privateUserRouter from "./routes/userRoutes/privateUserRoutes";
 
 const app = express();
 const port = process.env.PORT || 3006;
@@ -28,7 +30,12 @@ const corsOptions = {
 
 app.use("/uploads", express.static("uploads"));
 app.use(cors(corsOptions));
-app.use("/api/user", userRouter);
+
+// app.use("/api/user", userRouter);
+
+app.use("/api/user/public", publicUserRouter);
+app.use("/api/user/private", privateUserRouter);
+
 app.use("/api/otp", otpRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/conversations", conversationRouter);
@@ -41,6 +48,6 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 initializeSocket(server);
 
-server.listen({ port: port, host: HOST }, () => {
+server.listen(port, () => {
   console.log(`Server running on http://${HOST}:${port}`);
 });

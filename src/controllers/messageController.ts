@@ -7,6 +7,7 @@ import {
   createAttachment,
   getAttachmentsByMessageId,
 } from "../services/attachmentService";
+import { Message } from "interfaces/message";
 export const sendMessage = async (
   req: Request | any,
   res: Response
@@ -65,10 +66,10 @@ export const sendMessage = async (
     }
 
     // 3. Send the message in the conversation
-    const message = await messageService.createMessage(
+    const message: Message = await messageService.createMessage(
       conversation?.conversation_id,
       senderId,
-      receiver_id as any,
+      Number(receiver_id),
       messageText,
       messageType
     );

@@ -9,16 +9,15 @@ import { authMiddleware } from "../middlewares/authMiddlewares";
 import upload from "../middlewares/uploadFile";
 
 const messageRouter = express.Router();
-
+messageRouter.use(authMiddleware);
 messageRouter.post(
   "/sendMessage",
-  [authMiddleware, upload.array("attachments"), messageValidationMiddleware],
+  [upload.array("attachments"), messageValidationMiddleware],
   messageController.sendMessage
 );
 
 messageRouter.get(
   "/getMessagesByConversationId/:id",
-  authMiddleware,
   messageController.getConversationMessages
 );
 // router.put("/", validateRequest(updateMessageSchema), messageController.markMessageAsRead);

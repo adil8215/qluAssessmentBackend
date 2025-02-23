@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as conversationService from "../services/conversationService";
+import { AuthenticatedRequest } from "interfaces/request";
 
 export const createConversation = async (req: Request, res: Response) => {
   try {
@@ -28,24 +29,26 @@ export const getUserConversations = async (req: Request, res: Response) => {
 };
 
 export const findConversation = async (
-  req: Request | any,
+  req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
-    const senderId = req.user?.id;
+    const senderId = (req as AuthenticatedRequest).user?.id;
 
     const receiverId = Number(req.params.receiverId);
     console.log("participants", senderId, receiverId);
-    const conversation = await conversationService.findConversation(
-      senderId,
-      receiverId
-    );
+    if (senderId) {
+      const conversation = await conversationService.findConversation(
+        senderId,
+        receiverId
+      );
 
-    if (!conversation) {
-      return res.status(404).json({ error: "Conversation not found" });
+      if (!conversation) {
+        res.status(404).json({ error: "Conversation not found" });
+      }
+
+      res.status(200).json(conversation);
     }
-
-    res.status(200).json(conversation);
   } catch (error) {
     console.error("Error finding conversation:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -55,7 +58,7 @@ export const findConversation = async (
 export const getConversationByGroupId = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   const { groupId } = req.params; // Extract groupId from the route parameter
 
   try {
@@ -64,12 +67,12 @@ export const getConversationByGroupId = async (
     );
 
     if (!conversation) {
-      return res.status(404).json({ message: "Conversation not found" });
+      res.status(404).json({ message: "Conversation not found" });
     }
 
-    return res.status(200).json(conversation);
+    res.status(200).json(conversation);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ message: "Something went wrong" });
   }
 };

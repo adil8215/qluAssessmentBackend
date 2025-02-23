@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import * as attachmentService from "../services/attachmentService";
+import { Attachment } from "interfaces/attachment";
 
 export const uploadAttachments = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
     if (!req.files || !(req.files instanceof Array)) {
-      return res.status(400).json({ error: "No files uploaded" });
+      res.status(400).json({ error: "No files uploaded" });
     }
     console.log("req files", req.files, req.body);
     const { messageId } = req.body;
@@ -33,7 +34,7 @@ export const uploadAttachments = async (
 export const getAttachments = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
     const { messageId } = req.params;
     const attachments = await attachmentService.getAttachmentsByMessageId(
@@ -50,7 +51,7 @@ export const getAttachments = async (
 export const deleteAttachment = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
     const { attachmentId } = req.params;
     const deletedAttachment = await attachmentService.deleteAttachment(
@@ -58,7 +59,7 @@ export const deleteAttachment = async (
     );
 
     if (!deletedAttachment) {
-      return res.status(404).json({ error: "Attachment not found" });
+      res.status(404).json({ error: "Attachment not found" });
     }
 
     res.status(200).json({ message: "Attachment deleted successfully" });

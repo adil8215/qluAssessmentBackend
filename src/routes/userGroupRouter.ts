@@ -3,27 +3,19 @@ import * as userGroupController from "../controllers/userGroupController";
 import { authMiddleware } from "../middlewares/authMiddlewares";
 
 const userGroupRouter = express.Router();
-
+userGroupRouter.use(authMiddleware);
 // Routes for managing users in groups
 userGroupRouter.post(
   "/add",
-  authMiddleware,
+
   userGroupController.addUserToGroup
 );
 userGroupRouter.delete(
   "/remove/:userId/:groupId",
-  authMiddleware,
+
   userGroupController.removeUserFromGroup
 );
-userGroupRouter.get(
-  "/:groupId/users",
-  authMiddleware,
-  userGroupController.getUsersInGroup
-);
-userGroupRouter.get(
-  "/:userId/groups",
-  authMiddleware,
-  userGroupController.getGroupsForUser
-);
+userGroupRouter.get("/:groupId/users", userGroupController.getUsersInGroup);
+userGroupRouter.get("/:userId/groups", userGroupController.getGroupsForUser);
 
 export default userGroupRouter;

@@ -19,7 +19,7 @@ export const createConversation = async (
 
 export const findConversation = async (
   senderId: number,
-  receiverId: number
+  receiverId: number | undefined
 ) => {
   const query = `
     SELECT * FROM conversation

@@ -5,21 +5,10 @@ import { authMiddleware } from "../middlewares/authMiddlewares";
 const groupRouter = express.Router();
 
 // Routes for group CRUD operations
-groupRouter.post("/createGroup", authMiddleware, groupController.createGroup);
-groupRouter.get(
-  "/fetchGroupById/:groupId",
-  authMiddleware,
-  groupController.getGroupById
-);
-groupRouter.put(
-  "/updateGroup/:groupId",
-  authMiddleware,
-  groupController.updateGroup
-);
-groupRouter.delete(
-  "/deleteGroup/:groupId",
-  authMiddleware,
-  groupController.deleteGroup
-);
-groupRouter.get("/user-groups", authMiddleware, groupController.getUserGroups);
+groupRouter.use(authMiddleware);
+groupRouter.post("/createGroup", groupController.createGroup);
+groupRouter.get("/fetchGroupById/:groupId", groupController.getGroupById);
+groupRouter.put("/updateGroup/:groupId", groupController.updateGroup);
+groupRouter.delete("/deleteGroup/:groupId", groupController.deleteGroup);
+groupRouter.get("/user-groups", groupController.getUserGroups);
 export default groupRouter;

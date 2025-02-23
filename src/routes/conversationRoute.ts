@@ -5,21 +5,16 @@ import { authMiddleware } from "../middlewares/authMiddlewares";
 const conversationRouter = express.Router();
 
 // Find an existing conversation between sender and receiver
-conversationRouter.get(
-  "/:receiverId",
-  authMiddleware,
-  conversationController.findConversation
-);
+conversationRouter.use(authMiddleware);
+conversationRouter.get("/:receiverId", conversationController.findConversation);
 
 conversationRouter.get(
   "/group/:groupId",
-  authMiddleware,
   conversationController.getConversationByGroupId
 );
 
 conversationRouter.get(
   "/fetchUserConversations/:id",
-  authMiddleware,
   conversationController.getUserConversations
 );
 export default conversationRouter;
