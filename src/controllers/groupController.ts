@@ -23,8 +23,12 @@ export const createGroup = async (
       await userGroupService.addUserToGroup(userId, group.group_id, "admin");
       res.status(201).json(group);
     }
-  } catch (error: any) {
-    res.status(400).json({ error: error?.message });
+  } catch (error: unknown) {
+    let errorMessage = "Internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };
 

@@ -10,6 +10,7 @@ import {
   requestOtp,
 } from "../services/otpService";
 import { sendOtpEmail } from "../services/emailService";
+import { AuthenticatedRequest } from "interfaces/request";
 
 // Controller to create a user
 export const createUser = async (req: Request, res: Response) => {
@@ -18,9 +19,12 @@ export const createUser = async (req: Request, res: Response) => {
     const user = await userService.createUser(req.body);
     console.log("user", user);
     res.status(201).json(user);
-  } catch (error: any) {
-    console.error(error);
-    res.status(400).json({ error: error.message });
+  } catch (error: unknown) {
+    let errorMessage = "Internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -28,7 +32,7 @@ export const createUser = async (req: Request, res: Response) => {
 export const getAllUsers = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
     const users = await userService.getAllUsers();
     res.status(200).json(users);
@@ -42,12 +46,12 @@ export const getAllUsers = async (
 export const getUserById = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   const { id } = req.params;
   try {
     const user = await userService.getUserById(Number(id));
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
     }
     res.status(200).json(user);
   } catch (error) {
@@ -57,12 +61,15 @@ export const getUserById = async (
 };
 
 // Controller to update a user
-export const updateUser = async (req: Request, res: Response): Promise<any> => {
+export const updateUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   try {
     const updatedUser = await userService.updateUser(Number(id), req.body);
     if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
     }
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -128,17 +135,18 @@ export const logout = (req: Request, res: Response) => {
   res.json({ message: "Logged out successfully" });
 };
 
-export const getLoggedInUser = (req: AuthRequest, res: Response): any => {
+export const getLoggedInUser = (req: AuthRequest, res: Response): void => {
   if (!req.user) {
-    return res.status(403).json({ message: "User not found." });
+    res.status(403).json({ message: "User not found." });
   }
-  res.json({ userId: req.user.id });
+
+  res.json({ userId: req?.user?.id });
 };
 
 export const updateUserContactInfo = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   const { id } = req.params; // Get user ID from request params
   console.log("req.body", req.body);
   try {
@@ -148,7 +156,7 @@ export const updateUserContactInfo = async (
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
     }
 
     res.status(200).json(updatedUser);
@@ -161,7 +169,7 @@ export const updateUserContactInfo = async (
 export const updateUserProfile = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   const { id } = req.params; // User ID from params
   const file = req.file; // Uploaded file
 
@@ -173,7 +181,7 @@ export const updateUserProfile = async (
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
     }
 
     res.status(200).json(updatedUser);
@@ -183,7 +191,7 @@ export const updateUserProfile = async (
   }
 };
 
-export const sendOtp = async (req: Request, res: Response): Promise<any> => {
+export const sendOtp = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     await deleteOtpByUserId(Number(id));
@@ -199,13 +207,11 @@ export const sendOtp = async (req: Request, res: Response): Promise<any> => {
 export const checkUserStatus = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   const token = req.cookies?.access_token;
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ status: "expired", message: "No token provided." });
+    res.status(401).json({ status: "expired", message: "No token provided." });
   }
 
   try {
@@ -221,15 +227,12 @@ export const checkUserStatus = async (
 
     const currentTime = Math.floor(Date.now() / 1000);
     if (decoded.exp < currentTime) {
-      return res
-        .status(401)
-        .json({ status: "expired", message: "Token expired." });
+      res.status(401).json({ status: "expired", message: "Token expired." });
+      return;
     }
 
     res.status(200).json({ status: "active", message: "Token is active." });
   } catch (error) {
-    return res
-      .status(403)
-      .json({ status: "expired", message: "Invalid token." });
+    res.status(403).json({ status: "expired", message: "Invalid token." });
   }
 };

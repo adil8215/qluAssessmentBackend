@@ -105,8 +105,13 @@ async function validateOtp(
 
     return { valid: true, message: "OTP is valid and user is verified" };
   } catch (err: any) {
-    console.error("Error validating OTP:", err);
-    throw new Error(err);
+    if (err instanceof Error) {
+      console.error("Error validating OTP:", err.message);
+      throw err;
+    } else {
+      console.error("Unexpected error type:", err);
+      throw new Error("An unexpected error occurred");
+    }
   }
 }
 

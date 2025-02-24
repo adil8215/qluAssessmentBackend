@@ -4,9 +4,10 @@ import { userSchema } from "../validators/userAccountValidator"; // Update to re
 import bcrypt from "bcrypt";
 import { handleOtpRequest, requestOtp } from "./otpService";
 import { generateAccessToken } from "./jwtService";
+import { User } from "interfaces/user";
 
 // Service to create a new user
-export const createUser = async (userData: any) => {
+export const createUser = async (userData: User) => {
   // ✅ Validate user input
   const validation = userSchema.safeParse(userData);
   if (!validation.success) {
@@ -75,7 +76,7 @@ export const createUser = async (userData: any) => {
 };
 
 // Service to get all users
-export const getAllUsers = async (): Promise<any> => {
+export const getAllUsers = async () => {
   const result = await client.query("SELECT * FROM users");
   return result.rows;
 };
@@ -87,8 +88,9 @@ export const getUserById = async (id: number) => {
 };
 
 // Service to update a user
-export const updateUser = async (id: number, userData: any) => {
-  const { name, username, email, contactNumber, otherInfo, imgUrl } = userData;
+export const updateUser = async (id: number, userData: User) => {
+  const { name, username, email, contact_number, other_info, img_url } =
+    userData;
 
   const query = `
     UPDATE users
@@ -100,9 +102,9 @@ export const updateUser = async (id: number, userData: any) => {
     name,
     username,
     email,
-    contactNumber,
-    JSON.stringify(otherInfo),
-    imgUrl,
+    contact_number,
+    JSON.stringify(other_info),
+    img_url,
     id,
   ]);
 
@@ -147,7 +149,7 @@ export const login = async (email: string, password: string) => {
   return { accessToken, refreshToken, user };
 };
 
-export const updateUserContactInfo = async (id: number, userData: any) => {
+export const updateUserContactInfo = async (id: number, userData: User) => {
   const { email, contact_number } = userData;
 
   const query = `
@@ -163,7 +165,7 @@ export const updateUserContactInfo = async (id: number, userData: any) => {
 
 export const updateUserProfile = async (
   id: number,
-  userData: any,
+  userData: User,
   file?: Express.Multer.File
 ) => {
   const { name, username } = userData;

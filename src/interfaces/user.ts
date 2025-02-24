@@ -7,4 +7,5 @@ export interface User {
   username: string;
   img_url?: string;
   email: string;
+  other_info?: [];
 }

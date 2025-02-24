@@ -7,7 +7,7 @@ import { AddUserToGroupSchema } from "../validators/groupValidation"; // Assumin
 export const addUserToGroup = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   console.log("req", req.body);
   try {
     const validatedData = AddUserToGroupSchema.parse(req.body);
@@ -17,10 +17,13 @@ export const addUserToGroup = async (
       group_id,
       role
     );
-    return res.status(201).json(addedUser);
-  } catch (error: any) {
-    console.log("error", error);
-    return res.status(400).json({ error: error.message });
+    res.status(201).json(addedUser);
+  } catch (error: unknown) {
+    let errorMessage = "Internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -28,21 +31,26 @@ export const addUserToGroup = async (
 export const removeUserFromGroup = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
     const userId = parseInt(req.params.userId);
     const groupId = parseInt(req.params.groupId);
     if (isNaN(userId) || isNaN(groupId)) {
-      return res.status(400).json({ error: "Invalid user or group ID" });
+      res.status(400).json({ error: "Invalid user or group ID" });
+      return;
     }
 
     const removedUser = await userGroupService.removeUserFromGroup(
       userId,
       groupId
     );
-    return res.status(200).json(removedUser);
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    res.status(200).json(removedUser);
+  } catch (error: unknown) {
+    let errorMessage = "Internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -50,17 +58,22 @@ export const removeUserFromGroup = async (
 export const getUsersInGroup = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
     const groupId = parseInt(req.params.groupId);
     if (isNaN(groupId)) {
-      return res.status(400).json({ error: "Invalid group ID" });
+      res.status(400).json({ error: "Invalid group ID" });
+      return;
     }
 
     const users = await userGroupService.getUsersInGroup(groupId);
-    return res.status(200).json(users);
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    res.status(200).json(users);
+  } catch (error: unknown) {
+    let errorMessage = "Internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -68,16 +81,21 @@ export const getUsersInGroup = async (
 export const getGroupsForUser = async (
   req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
     const userId = parseInt(req.params.userId);
     if (isNaN(userId)) {
-      return res.status(400).json({ error: "Invalid user ID" });
+      res.status(400).json({ error: "Invalid user ID" });
+      return;
     }
 
     const groups = await userGroupService.getGroupsForUser(userId);
-    return res.status(200).json(groups);
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    res.status(200).json(groups);
+  } catch (error: unknown) {
+    let errorMessage = "Internal server error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };
