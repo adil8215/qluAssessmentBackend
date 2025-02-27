@@ -11,10 +11,11 @@ export const validateOtpController = async (req: Request, res: Response) => {
     // Respond with validation result
     res.type("application/json");
     res.json(validation);
-  } catch (err: any) {
-    console.log("");
-    console.error("Error during OTP validation:", err);
-    res.type("application/json");
-    res.status(400).json({ error: err?.message });
+  } catch (err: unknown) {
+    let errorMessage = "Internal server error";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };

@@ -34,23 +34,25 @@ export const findConversation = async (
 ): Promise<void> => {
   try {
     const senderId = (req as AuthenticatedRequest).user?.id;
-
     const receiverId = Number(req.params.receiverId);
-    console.log("participants", senderId, receiverId);
-    if (senderId) {
-      const conversation = await conversationService.findConversation(
-        senderId,
-        receiverId
-      );
 
-      if (!conversation) {
-        res.status(404).json({ error: "Conversation not found" });
-      }
-
-      res.status(200).json(conversation);
+    if (!senderId) {
+      res.status(400).json({ error: "Sender ID is missing" }); // ✅ No type error
+      return;
     }
+
+    const conversation = await conversationService.findConversation(
+      senderId,
+      receiverId
+    );
+
+    if (!conversation) {
+      res.status(404).json({ error: "Conversation not found" }); // ✅ No type error
+      return;
+    }
+
+    res.status(200).json(conversation); // ✅ Send response
   } catch (error) {
-    console.error("Error finding conversation:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -68,6 +70,7 @@ export const getConversationByGroupId = async (
 
     if (!conversation) {
       res.status(404).json({ message: "Conversation not found" });
+      return;
     }
 
     res.status(200).json(conversation);

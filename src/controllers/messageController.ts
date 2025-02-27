@@ -8,12 +8,13 @@ import {
   getAttachmentsByMessageId,
 } from "../services/attachmentService";
 import { Message } from "interfaces/message";
+import { AuthenticatedRequest } from "interfaces/request";
 export const sendMessage = async (
-  req: Request | any,
+  req: Request,
   res: Response
-): Promise<any> => {
+): Promise<void> => {
   try {
-    const senderId = req.user?.id;
+    const senderId = (req as AuthenticatedRequest).user?.id;
     console.log("senderId", senderId);
     const {
       receiverId,
@@ -30,85 +31,87 @@ export const sendMessage = async (
 
     // 1. Check if a conversation exists
     let conversation;
-    if (!groupId && receiver_id) {
-      conversation = await conversationService.findConversation(
+    if (senderId) {
+      if (!groupId && receiver_id) {
+        conversation = await conversationService.findConversation(
+          senderId,
+          receiver_id
+        );
+
+        // 2. If not, create a new conversation
+        if (!conversation) {
+          conversation = await conversationService.createConversation(
+            [senderId, receiver_id],
+            groupId,
+            conversation_type
+          );
+        }
+      } else if (groupId && !receiver_id) {
+        console.log("group chat", groupId);
+        conversation = await conversationService.findConversationByGroupId(
+          groupId
+        );
+
+        // 2. If not, create a new conversation
+        if (!conversation) {
+          const participants = await getUsersInGroup(groupId);
+          console.log("actual", participants);
+          const participantIds = participants.map((member) => member.id);
+          console.log("participants", participantIds, conversation);
+          conversation = await conversationService.createConversation(
+            participantIds,
+            groupId,
+            conversation_type
+          );
+          console.log("conversation", conversation);
+        }
+      }
+
+      // 3. Send the message in the conversation
+      const message: Message = await messageService.createMessage(
+        conversation?.conversation_id,
         senderId,
-        receiver_id
+        Number(receiver_id),
+        messageText,
+        messageType
       );
 
-      // 2. If not, create a new conversation
-      if (!conversation) {
-        conversation = await conversationService.createConversation(
-          [senderId, receiver_id],
-          groupId,
-          conversation_type
-        );
+      let attachments = [];
+      if (req.files && Array.isArray(req.files)) {
+        for (const file of req.files) {
+          const attachment = await createAttachment(
+            message.message_id, // Associate the attachment with the current message
+            file.mimetype, // File type (e.g., 'image/png')
+            file.path // The file path or URL where it's stored
+          );
+          attachments.push(attachment);
+        }
       }
-    } else if (groupId && !receiver_id) {
-      console.log("group chat", groupId);
-      conversation = await conversationService.findConversationByGroupId(
-        groupId
+
+      // 4. Update conversation with the latest message
+      await conversationService.updateLastMessage(
+        conversation.conversation_id,
+        message.message_id
       );
+      const io = getSocketInstance();
 
-      // 2. If not, create a new conversation
-      if (!conversation) {
-        const participants = await getUsersInGroup(groupId);
-        console.log("actual", participants);
-        const participantIds = participants.map((member) => member.id);
-        console.log("participants", participantIds, conversation);
-        conversation = await conversationService.createConversation(
-          participantIds,
-          groupId,
-          conversation_type
-        );
-        console.log("conversation", conversation);
-      }
+      const room = `conversation_${conversation.conversation_id}`;
+
+      io.to(room).emit("message", {
+        sender_id: senderId, // ✅ snake_case
+        message_text: messageText, // ✅ snake_case
+        conversation_id: conversation.conversation_id,
+        created_at: new Date().toISOString(),
+        attachments,
+        name,
+        img_url,
+      });
+
+      res.status(201).json({ message, conversation });
     }
-
-    // 3. Send the message in the conversation
-    const message: Message = await messageService.createMessage(
-      conversation?.conversation_id,
-      senderId,
-      Number(receiver_id),
-      messageText,
-      messageType
-    );
-
-    let attachments = [];
-    if (req.files && Array.isArray(req.files)) {
-      for (const file of req.files) {
-        const attachment = await createAttachment(
-          message.message_id, // Associate the attachment with the current message
-          file.mimetype, // File type (e.g., 'image/png')
-          file.path // The file path or URL where it's stored
-        );
-        attachments.push(attachment);
-      }
-    }
-
-    // 4. Update conversation with the latest message
-    await conversationService.updateLastMessage(
-      conversation.conversation_id,
-      message.message_id
-    );
-    const io = getSocketInstance();
-
-    const room = `conversation_${conversation.conversation_id}`;
-
-    io.to(room).emit("message", {
-      sender_id: senderId, // ✅ snake_case
-      message_text: messageText, // ✅ snake_case
-      conversation_id: conversation.conversation_id,
-      created_at: new Date().toISOString(),
-      attachments,
-      name,
-      img_url,
-    });
-
-    return res.status(201).json({ message, conversation });
   } catch (error) {
     console.error("Error sending message1111:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

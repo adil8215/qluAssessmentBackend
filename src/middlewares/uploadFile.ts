@@ -11,18 +11,19 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter to accept only certain file types (optional)
-const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
+// File filter to accept only certain file types
+const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
   const allowedTypes = [
     "image/jpeg",
     "image/png",
     "application/pdf",
     "video/mp4",
   ];
+
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type"), false);
+    cb(new Error("Invalid file type"));
   }
 };
 
